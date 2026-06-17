@@ -31,4 +31,10 @@ export default defineConfig([
       'import-x/no-duplicates': 'error',
     },
   },
+  {
+    files: ['**/*.stories.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
