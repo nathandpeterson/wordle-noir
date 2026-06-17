@@ -25,7 +25,58 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Run `npm run build`.
 - Visually inspect desktop and mobile viewport sizes.
 
-## PR 2: Decide Font and External Asset Strategy
+## PR 2: Establish Frontend Quality Gates
+
+**Goal:** Add the lightweight test and lint foundations before core game logic lands.
+
+**Priority:** Do this next. These tools are cheap to add while the app is still small, and they make the upcoming date, guess-evaluation, and state logic PRs easier to review.
+
+**Scope:**
+
+- Add Vitest with React Testing Library and `jsdom`.
+- Add `npm run test`, `npm run test:watch`, and any needed setup file.
+- Add focused example tests for an existing component or small helper so the setup is proven.
+- Tighten ESLint best-practice rules, including React hooks rules and circular import detection.
+- Confirm generated output, coverage output, and Storybook output directories are ignored by lint where needed.
+
+**Review focus:**
+
+- Test setup is simple and Vite-native.
+- ESLint catches high-risk React and dependency-graph mistakes without becoming noisy.
+- Commands are clear enough to become pre-push checks later.
+
+**Validation:**
+
+- Run `npm run lint`.
+- Run `npm run test`.
+- Run `npm run build`.
+
+## PR 3: Add Component Storybook
+
+**Goal:** Create a place to develop and review the small UI building blocks before the game grows more states.
+
+**Priority:** Do this after the initial test/lint gate and before heavy component-state work.
+
+**Scope:**
+
+- Add Storybook for Vite + React.
+- Add stories for `Button`, `IconButton`, `GameTile`, `GameGrid`, `Keyboard`, and `StatusLine`.
+- Cover meaningful visual states such as empty, filled, correct, present, absent, disabled, focused, and compact/mobile-friendly arrangements.
+- Ensure global styles and font decisions load in Storybook.
+- Add `npm run storybook` and `npm run build-storybook`.
+
+**Review focus:**
+
+- Stories help inspect component states without running through a full game.
+- Storybook styling matches the app shell closely enough to be useful.
+- Story files stay close to the components and do not introduce app-level logic.
+
+**Validation:**
+
+- Run `npm run build-storybook`.
+- Spot-check the key stories locally.
+
+## PR 4: Decide Font and External Asset Strategy
 
 **Goal:** Decide whether v1 should depend on remote Google Fonts or use local/system fonts.
 
@@ -46,7 +97,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 
 - Confirm fallback font remains acceptable if the font fails to load.
 
-## PR 3: Add Word Lists and Daily Puzzle Selection
+## PR 5: Add Word Lists and Daily Puzzle Selection
 
 **Goal:** Add deterministic local-date solution selection and word validation data.
 
@@ -56,7 +107,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Implement local date key formatting.
 - Implement `getTodaysSolution()`.
 - Implement `isAllowedGuess()`.
-- Add lightweight unit-testable pure helpers if the project test setup exists by then; otherwise keep helpers isolated for later tests.
+- Add pure helper tests for date selection and allowed-guess validation.
 
 **Review focus:**
 
@@ -66,10 +117,11 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 
 **Validation:**
 
+- Run `npm run test`.
 - Manual check that the same local date returns the same solution.
 - Manual check that different local dates advance predictably.
 
-## PR 4: Implement Core Game State and Guess Evaluation
+## PR 6: Implement Core Game State and Guess Evaluation
 
 **Goal:** Implement the Wordle mechanics without animation polish.
 
@@ -81,6 +133,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Prevent guesses after win/loss.
 - Show submitted row colors immediately after submit.
 - Update keyboard letter states using best-known status.
+- Add unit tests for duplicate-letter evaluation, state transitions, and keyboard status precedence.
 
 **Review focus:**
 
@@ -90,10 +143,11 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 
 **Validation:**
 
+- Run `npm run test`.
 - Test several duplicate-letter cases manually.
 - Run `npm run build`.
 
-## PR 5: Add Physical and On-Screen Keyboard Input
+## PR 7: Add Physical and On-Screen Keyboard Input
 
 **Goal:** Make input ergonomic across desktop and mobile without adding mobile native keyboard behavior.
 
@@ -114,7 +168,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Manual desktop keyboard pass.
 - Manual touch/click keyboard pass.
 
-## PR 6: Add Persistence and Already-Played Restore
+## PR 8: Add Persistence and Already-Played Restore
 
 **Goal:** Persist daily game progress and restore completed puzzles.
 
@@ -136,7 +190,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Refresh during play, after win, and after loss.
 - Manually change local storage date key or clear storage to verify fresh start.
 
-## PR 7: Build Instructions Modal and First-Visit Behavior
+## PR 9: Build Instructions Modal and First-Visit Behavior
 
 **Goal:** Add the help/instructions experience.
 
@@ -159,7 +213,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Clear `seenInstructions` key and reload.
 - Open/close modal from header.
 
-## PR 8: Add Result Cards, Share Text, and Countdown
+## PR 10: Add Result Cards, Share Text, and Countdown
 
 **Goal:** Complete win/loss and already-played result surfaces.
 
@@ -182,7 +236,33 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Copy share text for win and loss.
 - Force completed state and verify countdown updates.
 
-## PR 9: Add Animation Pass
+## PR 11: Add End-to-End Smoke Tests
+
+**Goal:** Add Playwright coverage once the app has enough real behavior to test from the user's point of view.
+
+**Priority:** Do this after keyboard, persistence, instructions, and results exist. Earlier than that, E2E tests would be mostly scaffolding; later than this, regressions become harder to catch.
+
+**Scope:**
+
+- Add Playwright configured for the Vite dev server.
+- Add `npm run test:e2e` and any required install/setup documentation.
+- Cover a happy-path win flow using physical or on-screen input.
+- Cover an invalid guess or duplicate-letter case if stable test data exists.
+- Cover refresh/restore behavior for an in-progress or completed daily puzzle.
+- Add a basic mobile viewport smoke test for layout stability.
+
+**Review focus:**
+
+- Tests exercise user-visible behavior rather than implementation details.
+- Test data is deterministic and does not depend on the real current date unless explicitly controlled.
+- E2E coverage stays small enough to run locally before push.
+
+**Validation:**
+
+- Run `npm run test:e2e`.
+- Run `npm run build`.
+
+## PR 12: Add Animation Pass
 
 **Goal:** Add Wordle-like motion once the core behavior is stable.
 
@@ -205,7 +285,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Manual invalid guess, valid guess, win, and loss flows.
 - Confirm animation does not leave tiles in a wrong visual state after refresh.
 
-## PR 10: Spike Synthesized Sound Quality
+## PR 13: Spike Synthesized Sound Quality
 
 **Goal:** Determine whether synthesized Web Audio sounds are good enough for v1.
 
@@ -233,7 +313,7 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Manual browser test after toggling sound on.
 - Confirm muted mode is silent.
 
-## PR 11: Visual Polish and Responsive Pass
+## PR 14: Visual Polish and Responsive Pass
 
 **Goal:** Bring the app from functional to polished.
 
@@ -256,7 +336,31 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 - Manual desktop and mobile viewport screenshots.
 - Run `npm run build`.
 
-## PR 12: Final Hardening and README Update
+## PR 15: Add Pre-Push Enforcement
+
+**Goal:** Use Husky to enforce the core local quality gates once the scripts have settled.
+
+**Priority:** Add this late enough that the hook runs known-good commands, but before final handoff so broken lint, tests, or builds do not slip in.
+
+**Scope:**
+
+- Add Husky and initialize repository hooks.
+- Add a pre-push hook that runs `npm run lint`, `npm run test`, and `npm run build`.
+- Decide whether `npm run test:e2e` belongs in pre-push or remains a manual/CI gate. Default recommendation: keep Playwright out of pre-push unless the suite is very fast and reliable locally.
+- Document how to run the same checks manually.
+
+**Review focus:**
+
+- Hook failures are actionable and not flaky.
+- The hook enforces best practices without making small local pushes painful.
+- README instructions match the actual scripts.
+
+**Validation:**
+
+- Run the pre-push command sequence manually.
+- Confirm a sample hook invocation fails when one command fails.
+
+## PR 16: Final Hardening and README Update
 
 **Goal:** Prepare v1 for handoff.
 
@@ -264,7 +368,8 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 
 - Add or update README with local dev/build instructions.
 - Clean up dead code and temporary spike artifacts.
-- Confirm lint/build pass.
+- Confirm lint/test/build pass.
+- Confirm Playwright smoke tests pass or document any intentional skip.
 - Do a full playthrough checklist.
 - Capture known limitations and follow-up ideas.
 
@@ -277,28 +382,36 @@ This document breaks the Wordle Noir build into small, reviewable PR-sized chunk
 **Validation:**
 
 - Run `npm run lint`.
+- Run `npm run test`.
+- Run `npm run test:e2e`.
 - Run `npm run build`.
 - Complete manual win and loss playthroughs.
 
 ## Suggested Build Order
 
 1. PR 1: App shell and styling foundations
-2. PR 2: Font and external asset decision
-3. PR 3: Word lists and daily puzzle selection
-4. PR 4: Core game state and guess evaluation
-5. PR 5: Keyboard input
-6. PR 6: Persistence and restore
-7. PR 7: Instructions modal
-8. PR 8: Result cards, share, and countdown
-9. PR 9: Animations
-10. PR 10: Sound quality spike
-11. PR 11: Visual polish and responsive pass
-12. PR 12: Final hardening and README update
+2. PR 2: Frontend quality gates
+3. PR 3: Component Storybook
+4. PR 4: Font and external asset decision
+5. PR 5: Word lists and daily puzzle selection
+6. PR 6: Core game state and guess evaluation
+7. PR 7: Keyboard input
+8. PR 8: Persistence and restore
+9. PR 9: Instructions modal
+10. PR 10: Result cards, share, and countdown
+11. PR 11: End-to-end smoke tests
+12. PR 12: Animations
+13. PR 13: Sound quality spike
+14. PR 14: Visual polish and responsive pass
+15. PR 15: Pre-push enforcement
+16. PR 16: Final hardening and README update
 
 ## Cross-Cutting Notes
 
 - Keep each PR small enough to review without needing to mentally simulate the entire game.
 - Prefer pure helper functions for date selection, guess evaluation, keyboard status, and share text generation.
+- Prefer Vitest for pure logic and component behavior, Storybook for visual state review, and Playwright only for critical user flows.
+- Keep pre-push checks limited to fast, reliable gates. Move slow or flaky checks to manual validation or CI rather than training contributors to bypass hooks.
 - Avoid introducing a UI library unless the app grows beyond the current PRD. The expected v1 surface area is small enough for plain React and CSS.
 - Avoid state-management libraries for v1. React state plus a few helpers should be sufficient.
 - Treat accessibility as "not a full v1 feature, but no obvious traps": labels on icon buttons, reasonable focus behavior, readable contrast, and no essential information conveyed by color alone in the instructions.
