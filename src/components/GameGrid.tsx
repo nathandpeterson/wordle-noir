@@ -1,8 +1,13 @@
 import GameTile, { type TileState } from "./GameTile";
 
-type PlaceholderTile = {
+export type PlaceholderTile = {
   letter: string;
   state: TileState;
+};
+
+type GameGridProps = {
+  label?: string;
+  rows?: ReadonlyArray<ReadonlyArray<PlaceholderTile>>;
 };
 
 const emptyTile: PlaceholderTile = { letter: "", state: "empty" };
@@ -27,13 +32,16 @@ const placeholderRows: PlaceholderTile[][] = [
   ),
 ];
 
-function GameGrid() {
+function GameGrid({
+  label = "Wordle Noir puzzle grid placeholder",
+  rows = placeholderRows,
+}: GameGridProps) {
   return (
     <section
-      aria-label="Wordle Noir puzzle grid placeholder"
+      aria-label={label}
       className="mx-auto grid w-full max-w-[min(300px,34svh)] grid-rows-6 gap-1.5 sm:max-w-[min(330px,34svh)] sm:gap-2"
     >
-      {placeholderRows.map((row, rowIndex) => (
+      {rows.map((row, rowIndex) => (
         <div className="grid grid-cols-5 gap-1.5 sm:gap-2" key={`row-${rowIndex}`}>
           {row.map((tile, tileIndex) => (
             <GameTile
